@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,24 +16,37 @@ class FailureAnalysisService:
 
     async def analyze_failures(
         self,
-        days: int = 30,
+        days: int | None = None,
+        date_from: date | None = None,
+        date_to: date | None = None,
         printer_id: int | None = None,
         project_id: int | None = None,
     ) -> dict:
         """Analyze failure patterns across archives.
 
         Args:
-            days: Number of days to analyze
+            days: Number of days to analyze (fallback when no date range)
+            date_from: Start date filter (inclusive)
+            date_to: End date filter (inclusive)
             printer_id: Optional filter by printer
             project_id: Optional filter by project
 
         Returns:
             Dictionary with failure analysis results
         """
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-
         # Build base query
-        base_filter = [PrintArchive.created_at >= cutoff_date]
+        base_filter = []
+        if date_from or date_to:
+            if date_from:
+                dt_from = datetime.combine(date_from, time.min, tzinfo=timezone.utc)
+                base_filter.append(PrintArchive.created_at >= dt_from)
+            if date_to:
+                dt_to = datetime.combine(date_to, time.max, tzinfo=timezone.utc)
+                base_filter.append(PrintArchive.created_at <= dt_to)
+        else:
+            effective_days = days if days is not None else 30
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=effective_days)
+            base_filter.append(PrintArchive.created_at >= cutoff_date)
         if printer_id:
             base_filter.append(PrintArchive.printer_id == printer_id)
         if project_id:
