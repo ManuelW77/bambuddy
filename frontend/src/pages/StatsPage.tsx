@@ -123,8 +123,9 @@ function SuccessRateWidget({
   size?: 1 | 2 | 4;
   t: (key: string) => string;
 }) {
-  const successRate = stats?.total_prints
-    ? Math.round((stats.successful_prints / stats.total_prints) * 100)
+  const completedAndFailed = (stats?.successful_prints || 0) + (stats?.failed_prints || 0);
+  const successRate = completedAndFailed
+    ? Math.round((stats!.successful_prints / completedAndFailed) * 100)
     : 0;
 
   // Scale gauge size based on widget size
