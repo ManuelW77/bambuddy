@@ -58,6 +58,16 @@ class NFCReader:
             return False
 
     @property
+    def reader_type(self) -> str:
+        """Return NFC reader hardware type."""
+        return "PN5180" if self._nfc is not None else "Unknown"
+
+    @property
+    def connection(self) -> str:
+        """Return NFC reader connection type."""
+        return "SPI" if self._nfc is not None else "None"
+
+    @property
     def ok(self) -> bool:
         return self._ok
 

@@ -17,6 +17,7 @@ from backend.app.schemas.spoolbuddy import (
     CalibrationResponse,
     DeviceRegisterRequest,
     DeviceResponse,
+    DisplaySettingsRequest,
     HeartbeatRequest,
     HeartbeatResponse,
     ScaleReadingRequest,
@@ -54,6 +55,12 @@ def _device_to_response(device: SpoolBuddyDevice) -> DeviceResponse:
         has_scale=device.has_scale,
         tare_offset=device.tare_offset,
         calibration_factor=device.calibration_factor,
+        nfc_reader_type=device.nfc_reader_type,
+        nfc_connection=device.nfc_connection,
+        display_brightness=device.display_brightness,
+        display_blank_timeout=device.display_blank_timeout,
+        has_backlight=device.has_backlight,
+        last_calibrated_at=device.last_calibrated_at,
         last_seen=device.last_seen,
         pending_command=device.pending_command,
         nfc_ok=device.nfc_ok,
@@ -85,6 +92,9 @@ async def register_device(
         device.firmware_version = req.firmware_version
         device.has_nfc = req.has_nfc
         device.has_scale = req.has_scale
+        device.nfc_reader_type = req.nfc_reader_type
+        device.nfc_connection = req.nfc_connection
+        device.has_backlight = req.has_backlight
         device.last_seen = now
         logger.info("SpoolBuddy device re-registered: %s (%s)", req.device_id, req.hostname)
     else:
@@ -97,6 +107,9 @@ async def register_device(
             has_scale=req.has_scale,
             tare_offset=req.tare_offset,
             calibration_factor=req.calibration_factor,
+            nfc_reader_type=req.nfc_reader_type,
+            nfc_connection=req.nfc_connection,
+            has_backlight=req.has_backlight,
             last_seen=now,
         )
         db.add(device)
@@ -151,6 +164,10 @@ async def device_heartbeat(
         device.firmware_version = req.firmware_version
     if req.ip_address:
         device.ip_address = req.ip_address
+    if req.nfc_reader_type:
+        device.nfc_reader_type = req.nfc_reader_type
+    if req.nfc_connection:
+        device.nfc_connection = req.nfc_connection
 
     # Return and clear pending command
     pending = device.pending_command
@@ -171,6 +188,8 @@ async def device_heartbeat(
         pending_command=pending,
         tare_offset=device.tare_offset,
         calibration_factor=device.calibration_factor,
+        display_brightness=device.display_brightness,
+        display_blank_timeout=device.display_blank_timeout,
     )
 
 
@@ -322,6 +341,7 @@ async def set_tare_offset(
         raise HTTPException(status_code=404, detail="Device not registered")
 
     device.tare_offset = req.tare_offset
+    device.last_calibrated_at = datetime.now(timezone.utc)
     await db.commit()
 
     logger.info("SpoolBuddy %s tare offset set to %d", device_id, req.tare_offset)
@@ -352,6 +372,7 @@ async def set_calibration_factor(
     device.calibration_factor = req.known_weight_grams / raw_delta
     if req.tare_raw_adc is not None:
         device.tare_offset = tare
+    device.last_calibrated_at = datetime.now(timezone.utc)
     await db.commit()
 
     logger.info(
@@ -384,6 +405,106 @@ async def get_calibration(
         tare_offset=device.tare_offset,
         calibration_factor=device.calibration_factor,
     )
+
+
+# --- Display settings ---
+
+
+@router.put("/devices/{device_id}/display")
+async def update_display_settings(
+    device_id: str,
+    req: DisplaySettingsRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User | None = RequirePermissionIfAuthEnabled(Permission.INVENTORY_UPDATE),
+):
+    """Update display brightness and screen blank timeout for a device."""
+    result = await db.execute(select(SpoolBuddyDevice).where(SpoolBuddyDevice.device_id == device_id))
+    device = result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not registered")
+
+    device.display_brightness = req.brightness
+    device.display_blank_timeout = req.blank_timeout
+    await db.commit()
+
+    logger.info(
+        "SpoolBuddy %s display updated: brightness=%d%%, blank_timeout=%ds",
+        device_id,
+        req.brightness,
+        req.blank_timeout,
+    )
+    return {"status": "ok", "brightness": req.brightness, "blank_timeout": req.blank_timeout}
+
+
+# --- Update check ---
+
+
+@router.get("/devices/{device_id}/update-check")
+async def check_daemon_update(
+    device_id: str,
+    include_beta: bool = False,
+    db: AsyncSession = Depends(get_db),
+    _: User | None = RequirePermissionIfAuthEnabled(Permission.INVENTORY_READ),
+):
+    """Check if a newer daemon version is available on GitHub."""
+    import httpx
+
+    from backend.app.api.routes.updates import is_newer_version, parse_version
+    from backend.app.core.config import GITHUB_REPO
+
+    result = await db.execute(select(SpoolBuddyDevice).where(SpoolBuddyDevice.device_id == device_id))
+    device = result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not registered")
+
+    current = device.firmware_version or "0.0.0"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"https://api.github.com/repos/{GITHUB_REPO}/releases?per_page=20",
+                headers={"Accept": "application/vnd.github.v3+json"},
+                timeout=10.0,
+            )
+            response.raise_for_status()
+            releases = response.json()
+
+            release_data = None
+            for release in releases:
+                tag = release.get("tag_name", "")
+                if include_beta:
+                    release_data = release
+                    break
+                else:
+                    parsed = parse_version(tag)
+                    if parsed[4] == 0:  # is_prerelease == 0
+                        release_data = release
+                        break
+
+            if not release_data:
+                return {
+                    "current_version": current,
+                    "latest_version": None,
+                    "update_available": False,
+                    "release_url": None,
+                }
+
+            latest = release_data.get("tag_name", "").lstrip("v")
+            return {
+                "current_version": current,
+                "latest_version": latest,
+                "update_available": is_newer_version(latest, current),
+                "release_url": release_data.get("html_url"),
+            }
+    except Exception as e:
+        logger.warning("Failed to check for daemon updates: %s", e)
+        return {
+            "current_version": current,
+            "latest_version": None,
+            "update_available": False,
+            "release_url": None,
+            "error": str(e),
+        }
 
 
 # --- Background watchdog ---
