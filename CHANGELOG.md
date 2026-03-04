@@ -2,7 +2,7 @@
 
 All notable changes to Bambuddy will be documented in this file.
 
-## [0.2.2b1] - Unrelased
+## [0.2.2b1] - 2026-03-03
 
 ### Improved
 - **SpoolBuddy Settings Page Redesign** — Redesigned the SpoolBuddy settings page with a tabbed layout (Device, Display, Scale, Updates). The Device tab shows an About section, NFC reader info (type, connection, status), device info (host, IP, uptime, online status), and device ID. The Display tab has a brightness slider (CSS software filter for HDMI displays) and screen blank timeout selector (Off, 1m, 2m, 5m, 10m, 30m) — the screen blanks after user inactivity (no touch) and wakes on tap. The Scale tab shows live weight with a step-indicator calibration wizard (tare → place known weight → calibrate). The Updates tab shows the daemon version and checks for updates against GitHub releases with optional beta inclusion. Display settings (brightness + blank timeout) are stored per-device in the backend and applied instantly in the frontend layout via outlet context.
