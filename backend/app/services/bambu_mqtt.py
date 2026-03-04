@@ -1854,6 +1854,11 @@ class BambuMQTTClient:
                         severity = (attr >> 8) & 0xF
                         # Module is in attr byte 3 (bits 24-31)
                         module = (attr >> 24) & 0xFF
+                        # Skip non-error status codes — all real HMS errors
+                        # have code >= 0x4000. Lower values are status/phase
+                        # indicators that some firmware sends during normal printing.
+                        if code < 0x4000:
+                            continue
                         self.state.hms_errors.append(
                             HMSError(
                                 code=f"0x{code:x}" if code else "0x0",
