@@ -231,6 +231,48 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
       const hasActiveWork = dispatched + processing > 0;
       const allDone = total > 0 && completed + failed >= total && !hasActiveWork;
+      const recentStatus = detail.recent_event?.status;
+
+      // Once any print starts successfully, dismiss the dispatch toast (#615)
+      // Remaining jobs continue in the background silently
+      if (recentStatus === 'completed' && completed > 0) {
+        const summaryKey = `first-complete:${completed}:${failed}`;
+        if (lastDispatchSummaryRef.current !== summaryKey) {
+          lastDispatchSummaryRef.current = summaryKey;
+
+          const remaining = total - completed - failed;
+          const doneMessage = remaining > 0
+            ? t('backgroundDispatch.toast.printStartedRemaining', { completed, remaining })
+            : failed > 0
+              ? t('backgroundDispatch.toast.completeWithFailures', { completed, failed })
+              : t('backgroundDispatch.toast.completeSuccess', { completed });
+
+          setToasts((prev) => {
+            const doneToast: Toast = {
+              id: dispatchToastId,
+              message: doneMessage,
+              type: failed > 0 ? 'warning' : 'success',
+              persistent: true,
+            };
+            const exists = prev.find((toastItem) => toastItem.id === dispatchToastId);
+            if (exists) {
+              return prev.map((toastItem) =>
+                toastItem.id === dispatchToastId ? doneToast : toastItem
+              );
+            }
+            return [...prev, doneToast];
+          });
+
+          const existingTimeout = timeoutRefs.current.get(dispatchToastId);
+          if (existingTimeout) clearTimeout(existingTimeout);
+          const timeout = setTimeout(() => {
+            setToasts((prev) => prev.filter((t) => t.id !== dispatchToastId));
+            timeoutRefs.current.delete(dispatchToastId);
+          }, 3000);
+          timeoutRefs.current.set(dispatchToastId, timeout);
+        }
+        return;
+      }
 
       if (hasActiveWork) {
         setToasts((prev) => {
@@ -341,8 +383,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const recentStatus = detail.recent_event?.status;
-
       if (allDone) {
         const summaryKey = `${completed}:${failed}`;
         if (lastDispatchSummaryRef.current === summaryKey) {
@@ -418,8 +458,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast, showPersistentToast, dismissToast }}>
       {children}
 
-      {/* Toast Container — positioned above the bug-report bubble */}
-      <div className="fixed bottom-20 right-4 z-50 flex flex-col gap-2">
+      {/* Toast Container — to the left of the bug-report bubble (bottom-4 right-4 w-12) */}
+      <div className="fixed bottom-4 right-20 z-[60] flex flex-col items-end gap-2">
         {toasts.map((toast) => (
           <div
             key={toast.id}

@@ -947,6 +947,7 @@ export default {
       cancelFailed: '取消分发失败',
       completeWithFailures: '后台分发完成：{{completed}} 成功，{{failed}} 失败',
       completeSuccess: '后台分发完成：{{completed}} 成功',
+      printStartedRemaining: '{{completed}} 个打印已开始，{{remaining}} 个正在发送...',
     },
   },
 

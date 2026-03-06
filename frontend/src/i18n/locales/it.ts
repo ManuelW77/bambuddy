@@ -947,6 +947,7 @@ export default {
       cancelFailed: 'Impossibile annullare il dispatch',
       completeWithFailures: 'Dispatch in background completato: {{completed}} riusciti, {{failed}} falliti',
       completeSuccess: 'Dispatch in background completato: {{completed}} riusciti',
+      printStartedRemaining: '{{completed}} stampa/e avviata/e, {{remaining}} in invio...',
     },
   },
 

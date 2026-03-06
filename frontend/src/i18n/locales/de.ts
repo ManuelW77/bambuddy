@@ -947,6 +947,7 @@ export default {
       cancelFailed: 'Dispatch konnte nicht abgebrochen werden',
       completeWithFailures: 'Background Dispatch abgeschlossen: {{completed}} erfolgreich, {{failed}} fehlgeschlagen',
       completeSuccess: 'Background Dispatch abgeschlossen: {{completed}} erfolgreich',
+      printStartedRemaining: '{{completed}} Druck(e) gestartet, {{remaining}} weitere werden gesendet...',
     },
   },
 

@@ -947,6 +947,7 @@ export default {
       cancelFailed: '配信のキャンセルに失敗しました',
       completeWithFailures: 'バックグラウンド配信完了: {{completed}} 件成功、{{failed}} 件失敗',
       completeSuccess: 'バックグラウンド配信完了: {{completed}} 件成功',
+      printStartedRemaining: '{{completed}} 件の印刷を開始、残り {{remaining}} 件送信中...',
     },
   },
 
