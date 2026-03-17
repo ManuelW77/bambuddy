@@ -96,7 +96,11 @@ class FTPSession:
                 if not command_line:
                     continue
 
-                logger.info("FTP <- %s: %s", self.remote_ip, command_line)
+                # Never log passwords
+                if command_line.upper().startswith("PASS"):
+                    logger.info("FTP <- %s: PASS ********", self.remote_ip)
+                else:
+                    logger.info("FTP <- %s: %s", self.remote_ip, command_line)
 
                 # Parse command and argument
                 parts = command_line.split(" ", 1)
