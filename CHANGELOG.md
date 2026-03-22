@@ -50,6 +50,7 @@ All notable changes to Bambuddy will be documented in this file.
 ### Security
 - **Bump pyOpenSSL 25.3.0 → 26.0.0** — Fixes CVE-2026-27448 (exception swallowing in TLS servername callback) and CVE-2026-27459 (buffer overflow in DTLS cookie callback).
 - **Bump pyasn1 0.6.2 → 0.6.3** — Fixes CVE-2026-30922 (stack overflow from deeply nested ASN.1 structures).
+- **Bump flatted 3.4.1 → 3.4.2** — Fixes GHSA-rf6f-7fwh-wjgh (prototype pollution via `parse()`). Dev-only dependency (eslint).
 
 
 ## [0.2.2] - 2026-03-16
