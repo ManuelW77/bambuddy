@@ -201,6 +201,17 @@ async def get_script_plugs_by_printer(
     return ha_entities
 
 
+@router.get("/by-printer/{printer_id}/all", response_model=list[SmartPlugResponse])
+async def get_all_smart_plugs_by_printer(
+    printer_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User | None = RequirePermissionIfAuthEnabled(Permission.SMART_PLUGS_READ),
+):
+    """Get all smart plugs assigned to a printer."""
+    result = await db.execute(select(SmartPlug).where(SmartPlug.printer_id == printer_id))
+    return list(result.scalars().all())
+
+
 # Tasmota Discovery Endpoints
 # NOTE: These must be defined BEFORE /{plug_id} routes to avoid path conflicts
 
