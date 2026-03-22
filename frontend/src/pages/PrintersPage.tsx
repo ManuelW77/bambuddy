@@ -1902,6 +1902,15 @@ function PrinterCard({
     },
   });
 
+  // Run HA script mutation
+  const runScriptMutation = useMutation({
+    mutationFn: (id: number) => api.controlSmartPlug(id, 'on'),
+    onSuccess: () => {
+      showToast(t('printers.toast.scriptTriggered'));
+    },
+    onError: (error: Error) => showToast(error.message || t('printers.toast.failedToRunScript'), 'error'),
+  });
+
   // Print control mutations
   const stopPrintMutation = useMutation({
     mutationFn: () => api.stopPrint(printer.id),
@@ -4001,6 +4010,7 @@ function PrinterCard({
           <div className="mt-4 pt-4 border-t border-bambu-dark-tertiary space-y-2">
             {smartPlugs.map((plug, index) => {
               const plugStatus = plugStatusResults[index]?.data;
+              const isScript = plug.plug_type === 'homeassistant' && plug.ha_entity_id?.startsWith('script.');
               return (
                 <div key={plug.id} className="flex items-center gap-3">
                   <div className="flex items-center gap-2 min-w-0">
@@ -4022,6 +4032,17 @@ function PrinterCard({
                     )}
                   </div>
                   <div className="flex-1" />
+                  {isScript ? (
+                    <button
+                      onClick={() => runScriptMutation.mutate(plug.id)}
+                      disabled={runScriptMutation.isPending || !hasPermission('smart_plugs:control')}
+                      className="px-2 py-1 text-xs rounded transition-colors flex items-center gap-1 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                      title={!hasPermission('smart_plugs:control') ? t('printers.permission.noSmartPlugControl') : 'Run script'}
+                    >
+                      <Play className="w-3 h-3" />
+                      Run
+                    </button>
+                  ) : (
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => setShowPowerOnConfirm(plug.id)}
@@ -4054,6 +4075,8 @@ function PrinterCard({
                       Off
                     </button>
                   </div>
+                  )}
+                  {!isScript && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className={`text-xs hidden sm:inline ${plug.auto_off_executed ? 'text-bambu-green' : 'text-bambu-gray'}`}>
                       {plug.auto_off_executed ? 'Auto-off done' : 'Auto-off'}
@@ -4077,6 +4100,7 @@ function PrinterCard({
                       />
                     </button>
                   </div>
+                  )}
                 </div>
               );
             })}
