@@ -72,7 +72,7 @@ import { SkipObjectsModal, SkipObjectsIcon } from '../components/SkipObjectsModa
 import { FileUploadModal } from '../components/FileUploadModal';
 import { PrintModal } from '../components/PrintModal';
 import { PrinterInfoModal } from '../components/PrinterInfoModal';
-import { getGlobalTrayId } from '../utils/amsHelpers';
+import { getGlobalTrayId, getFillBarColor, getSpoolmanFillLevel, getFallbackSpoolTag } from '../utils/amsHelpers';
 import { getPrinterImage, getWifiStrength, filterCompatibleQueueItems } from '../utils/printer';
 import { FilamentSlotCircle } from '../components/FilamentSlotCircle';
 import { hexToColorName, parseFilamentColor, isLightColor } from '../utils/colors';
@@ -999,23 +999,6 @@ function getAmsLabel(amsId: number | string, trayCount: number): string {
   return isHt ? `HT-${letter}` : `AMS-${letter}`;
 }
 
-// Get fill bar color based on spool fill level
-function getFillBarColor(fillLevel: number): string {
-  if (fillLevel > 50) return '#00ae42'; // Green - good
-  if (fillLevel >= 15) return '#f59e0b'; // Amber - warning (<= 50%)
-  return '#ef4444'; // Red - critical (< 15%)
-}
-
-// Calculate fill level from Spoolman weight data (used as fallback when AMS reports 0%)
-function getSpoolmanFillLevel(
-  linkedSpool: LinkedSpoolInfo | undefined
-): number | null {
-  if (!linkedSpool?.remaining_weight || !linkedSpool?.filament_weight
-      || linkedSpool.filament_weight <= 0) return null;
-  return Math.min(100, Math.round(
-    (linkedSpool.remaining_weight / linkedSpool.filament_weight) * 100
-  ));
-}
 
 /**
  * Check if a tray contains a Bambu Lab spool (RFID-tagged).
@@ -1042,26 +1025,6 @@ function isBambuLabSpool(tray: {
   return false;
 }
 
-function toFixedHex(value: number, width: number): string {
-  const safe = Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-  return safe.toString(16).toUpperCase().padStart(width, '0').slice(-width);
-}
-
-// 32-bit FNV-1a hash -> 8-char hex (stable for alphanumeric serials)
-function hashSerialToHex32(serial: string): string {
-  const input = (serial || '').trim().toUpperCase();
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return (hash >>> 0).toString(16).toUpperCase().padStart(8, '0');
-}
-
-function getFallbackSpoolTag(printerSerial: string, amsId: number, trayId: number): string {
-  // 16-char stable hex tag for slots without RFID identifiers
-  return `${hashSerialToHex32(printerSerial)}${toFixedHex(amsId, 4)}${toFixedHex(trayId, 4)}`;
-}
 
 function CoverImage({ url, printName }: { url: string | null; printName?: string }) {
   const { t } = useTranslation();
