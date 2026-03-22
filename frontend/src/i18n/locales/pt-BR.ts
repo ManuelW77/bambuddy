@@ -379,7 +379,7 @@ export default {
       powerOnButton: 'Ligar',
       powerOffTitle: 'Desligar Interruptor',
       powerOffMessage: 'Tem certeza de que deseja desligar "{{name}}"?',
-      powerOffWarning: 'AVISO: "{{name}}" está ativo! Tem certeza de que deseja desligá-lo? Isso pode danificar o dispositivo conectado.',
+      powerOffWarning: 'AVISO: "{{name}}" está imprimindo! Tem certeza de que deseja desligá-lo? Isso interromperá a impressão e pode danificar a impressora.',
       powerOffButton: 'Desligar',
     },
     // Discovery

@@ -379,7 +379,7 @@ export default {
       powerOnButton: 'Einschalten',
       powerOffTitle: 'Schalter ausschalten',
       powerOffMessage: 'Möchten Sie "{{name}}" wirklich AUSSCHALTEN?',
-      powerOffWarning: 'WARNUNG: "{{name}}" ist aktiv! Möchten Sie es wirklich AUSSCHALTEN? Dies kann angeschlossene Geräte beschädigen.',
+      powerOffWarning: 'WARNUNG: "{{name}}" druckt gerade! Möchten Sie wirklich AUSSCHALTEN? Dies unterbricht den Druck und kann den Drucker beschädigen.',
       powerOffButton: 'Ausschalten',
     },
     // Discovery

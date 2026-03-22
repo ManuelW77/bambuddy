@@ -379,7 +379,7 @@ export default {
       powerOnButton: '开启',
       powerOffTitle: '关闭开关',
       powerOffMessage: '确定要关闭"{{name}}"吗？',
-      powerOffWarning: '警告："{{name}}"当前处于活动状态！确定要关闭吗？这可能会损坏连接的设备。',
+      powerOffWarning: '警告："{{name}}"正在打印中！确定要关闭吗？这将中断打印并可能损坏打印机。',
       powerOffButton: '关机',
     },
     // Discovery

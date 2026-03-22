@@ -1888,8 +1888,9 @@ function PrinterCard({
   const powerControlMutation = useMutation({
     mutationFn: ({ plugId, action }: { plugId: number; action: 'on' | 'off' }) =>
       api.controlSmartPlug(plugId, action),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['smartPlugsByPrinter', printer.id] });
+      queryClient.invalidateQueries({ queryKey: ['smartPlugStatus', variables.plugId] });
     },
   });
 

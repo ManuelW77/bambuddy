@@ -207,9 +207,15 @@ async def get_all_smart_plugs_by_printer(
     db: AsyncSession = Depends(get_db),
     _: User | None = RequirePermissionIfAuthEnabled(Permission.SMART_PLUGS_READ),
 ):
-    """Get all smart plugs assigned to a printer."""
+    """Get all smart plugs assigned to a printer that should appear on the printer card.
+
+    Returns power plugs (tasmota, mqtt) plus HA entities with show_on_printer_card enabled.
+    """
     result = await db.execute(select(SmartPlug).where(SmartPlug.printer_id == printer_id))
-    return list(result.scalars().all())
+    plugs = result.scalars().all()
+    return [
+        plug for plug in plugs if plug.plug_type != "homeassistant" or (plug.ha_entity_id and plug.show_on_printer_card)
+    ]
 
 
 # Tasmota Discovery Endpoints

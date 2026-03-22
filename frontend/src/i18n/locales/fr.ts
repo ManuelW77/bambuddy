@@ -379,7 +379,7 @@ export default {
       powerOnButton: 'Allumer',
       powerOffTitle: 'Éteindre Interrupteur',
       powerOffMessage: 'Éteindre "{{name}}" ?',
-      powerOffWarning: 'ATTENTION : "{{name}}" est actif ! Êtes-vous sûr de vouloir l\'éteindre ? Cela pourrait endommager l\'appareil connecté.',
+      powerOffWarning: 'ATTENTION : "{{name}}" imprime actuellement ! Êtes-vous sûr de vouloir l\'éteindre ? Cela interrompra l\'impression et pourrait endommager l\'imprimante.',
       powerOffButton: 'Éteindre',
     },
     // Discovery

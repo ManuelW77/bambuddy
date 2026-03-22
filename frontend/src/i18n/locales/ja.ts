@@ -378,7 +378,7 @@ export default {
       powerOnButton: '電源オン',
       powerOffTitle: 'スイッチをオフ',
       powerOffMessage: '「{{name}}」をオフにしますか？',
-      powerOffWarning: '警告: 「{{name}}」はアクティブです！オフにしますか？接続されているデバイスに損傷を与える可能性があります。',
+      powerOffWarning: '警告: 「{{name}}」は現在印刷中です！オフにしますか？印刷が中断され、プリンターが損傷する可能性があります。',
       powerOffButton: '電源オフ',
     },
     // Discovery

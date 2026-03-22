@@ -379,7 +379,7 @@ export default {
       powerOnButton: 'Accendi',
       powerOffTitle: 'Spegni Interruttore',
       powerOffMessage: 'Sei sicuro di spegnere "{{name}}"?',
-      powerOffWarning: 'AVVISO: "{{name}}" è attivo! Sei sicuro di spegnerlo? Questo potrebbe danneggiare il dispositivo collegato.',
+      powerOffWarning: 'AVVISO: "{{name}}" sta stampando! Sei sicuro di spegnerlo? Questo interromperà la stampa e potrebbe danneggiare la stampante.',
       powerOffButton: 'Spegni',
     },
     // Discovery

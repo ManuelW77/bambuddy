@@ -379,7 +379,7 @@ export default {
       powerOnButton: 'Power On',
       powerOffTitle: 'Power Off Switch',
       powerOffMessage: 'Are you sure you want to turn OFF "{{name}}"?',
-      powerOffWarning: 'WARNING: "{{name}}" is currently active! Are you sure you want to turn it OFF? This may damage the connected device.',
+      powerOffWarning: 'WARNING: "{{name}}" is currently printing! Are you sure you want to turn it OFF? This will interrupt the print and may damage the printer.',
       powerOffButton: 'Power Off',
     },
     // Discovery
